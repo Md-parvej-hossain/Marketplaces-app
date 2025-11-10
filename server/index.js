@@ -12,7 +12,7 @@ const corsOption = {
 
 app.use(cors(corsOption));
 app.use(express.json());
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.VITE_USER}:${process.env.VITE_PASS}@cluster0.mcpcj.mongodb.net/?appName=Cluster0`;
 
 const client = new MongoClient(uri, {
@@ -27,13 +27,47 @@ async function run() {
   try {
     const jobCollection = client.db('jobsDB').collection('jobs');
     const bidCollection = client.db('jobsDB').collection('bids');
+
     //get all jobs data BD
     app.get('/jobs', async (req, res) => {
       const result = await jobCollection.find().toArray();
       res.send(result);
     });
-    //post job data 
-    
+
+    //get a singale job data bd
+    app.get('/jobs/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await jobCollection.findOne(query);
+      res.send(result);
+    });
+
+    //seb a bid data in db
+    app.post('/bid', async (req, res) => {
+      const bidData = req.body;
+      const result = await bidCollection.insertOne(bidData);
+      res.send(result);
+    });
+    //save a job in db
+    app.post('/job', async (req, res) => {
+      const jobData = req.body;
+      const result = await jobCollection.insertOne(jobData);
+      res.send(result);
+    });
+    //get all job posted by a specific user
+    app.get('/job/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = { 'buyer.buyer_email': email };
+      const result = await jobCollection.find(query).toArray();
+      res.send(result);
+    });
+    //deleate a job data
+    app.delete('/jobs/:id', async (req, res) => {
+      const id = req.params.id;
+      const quary = { _id: new ObjectId(id) };
+      const result = await jobCollection.deleteOne(quary);
+      res.send(result);
+    });
     await client.db('admin').command({ ping: 1 });
     console.log(
       'Pinged your deployment. You successfully connected to MongoDB!'
