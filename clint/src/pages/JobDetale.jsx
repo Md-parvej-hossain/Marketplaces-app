@@ -1,5 +1,5 @@
 import { useContext, useState } from 'react';
-import { useLoaderData } from 'react-router';
+import { useLoaderData, useNavigate } from 'react-router';
 import { AuthContext } from '../provider/AuthProvider';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -8,15 +8,15 @@ import toast from 'react-hot-toast';
 const JobDetale = () => {
   const { user } = useContext(AuthContext);
   const jobData = useLoaderData();
-  console.log(jobData);
+  const navigate = useNavigate();
   const [startDate, setStartDate] = useState(new Date());
   const {
     category,
+    job_title,
     deadline,
     description,
     min_price,
     max_price,
-    buyer_email,
     buyer,
     _id,
   } = jobData || {};
@@ -35,13 +35,16 @@ const JobDetale = () => {
     const deadline = startDate;
     // const buyer_Email = buyer_email;
     const status = 'Pending';
+
     const bidData = {
       jobId,
+      category,
       price,
       deadline,
       comment,
       email,
-      buyer_email,
+      buyer,
+      job_title,
       status,
     };
     console.log(bidData);
@@ -51,6 +54,8 @@ const JobDetale = () => {
         bidData
       );
       console.log(data);
+      navigate('/my-bids');
+      toast.success('Job Bid Successfull');
     } catch (err) {
       console.log(err);
     }
@@ -85,7 +90,7 @@ const JobDetale = () => {
               </p>
             </div>
             <div className="rounded-full object-cover overflow-hidden w-14 h-14">
-              <img className='object-cover' src={buyer.photo} alt="" />
+              <img className="object-cover" src={buyer.photo} alt="" />
             </div>
           </div>
           <p className="mt-6 text-lg font-bold text-gray-600 ">

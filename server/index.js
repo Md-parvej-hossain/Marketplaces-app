@@ -49,11 +49,6 @@ async function run() {
       res.send(result);
     });
 
-    //get bid
-    app.get('/bid', async (req, res) => {
-      const result = await bidCollection.find().toArray();
-      res.send(result);
-    });
     //save a job in db
     app.post('/job', async (req, res) => {
       const jobData = req.body;
@@ -90,6 +85,34 @@ async function run() {
       res.send(result);
     });
 
+    // get all bids for a user by email from db
+    app.get('/mybid/:email', async (req, res) => {
+      const email = req.params.email;
+      // akai hoi tahola sodo emai lakala hiba
+      // const query = { email: email };
+      const query = { email };
+      const result = await bidCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    //get all bid request from db for job owner
+    app.get('/bid-requests/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = { 'buyer.buyer_email': email };
+      const result = await bidCollection.find(query).toArray();
+      res.send(result);
+    });
+    //update bid status
+    app.patch('/update-status/:id', async (req, res) => {
+      const id = req.params.id;
+      const status = req.body;
+      const query = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: status,
+      };
+      const result = await bidCollection.updateOne(query, updateDoc);
+      res.send(result);
+    });
     await client.db('admin').command({ ping: 1 });
     console.log(
       'Pinged your deployment. You successfully connected to MongoDB!'
