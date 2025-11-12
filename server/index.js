@@ -48,6 +48,12 @@ async function run() {
       const result = await bidCollection.insertOne(bidData);
       res.send(result);
     });
+
+    //get bid
+    app.get('/bid', async (req, res) => {
+      const result = await bidCollection.find().toArray();
+      res.send(result);
+    });
     //save a job in db
     app.post('/job', async (req, res) => {
       const jobData = req.body;

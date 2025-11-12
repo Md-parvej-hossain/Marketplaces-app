@@ -24,6 +24,7 @@ const MyPostadeJobs = () => {
       );
       console.log(data);
       toast.success('Delete Successful');
+
       //refresh ui
       getData();
     } catch (err) {

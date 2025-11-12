@@ -8,6 +8,8 @@ import AddJob from '../pages/AddJob';
 import Error from '../components/shared/Error';
 import MyPostadeJobs from '../pages/MyPostadeJobs';
 import UpdateJobs from '../pages/UpdateJobs';
+import PrivateRoutes from './PrivateRoutes';
+import MyBids from '../pages/MyBids';
 export const router = createBrowserRouter([
   {
     path: '/',
@@ -23,21 +25,45 @@ export const router = createBrowserRouter([
         path: '/jobDetals/:id',
         loader: ({ params }) =>
           fetch(`${import.meta.env.VITE_API_URL}/jobs/${params.id}`),
-        element: <JobDetale />,
+        element: (
+          <PrivateRoutes>
+            <JobDetale />
+          </PrivateRoutes>
+        ),
       },
       {
         path: '/my-posted-jobs',
-        element: <MyPostadeJobs />,
+        element: (
+          <PrivateRoutes>
+            <MyPostadeJobs />
+          </PrivateRoutes>
+        ),
       },
       {
         path: '/update-job/:id',
-        element: <UpdateJobs />,
+        element: (
+          <PrivateRoutes>
+            <UpdateJobs />
+          </PrivateRoutes>
+        ),
         loader: ({ params }) =>
           fetch(`${import.meta.env.VITE_API_URL}/jobs/${params.id}`),
       },
       {
         path: '/add-jobs',
-        element: <AddJob />,
+        element: (
+          <PrivateRoutes>
+            <AddJob />
+          </PrivateRoutes>
+        ),
+      },
+      {
+        path: '/my-bids',
+        element: (
+          <PrivateRoutes>
+            <MyBids />
+          </PrivateRoutes>
+        ),
       },
       {
         path: '/login',
