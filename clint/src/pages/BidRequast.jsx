@@ -1,10 +1,12 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../provider/AuthProvider';
 import axios from 'axios';
+import { useQuery } from '@tanstack/react-query';
 
 const BidRequast = () => {
   const { user } = useContext(AuthContext);
   const [bids, setBidts] = useState([]);
+  useQuery({});
   useEffect(() => {
     getData();
   }, [user]);
