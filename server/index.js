@@ -10,10 +10,29 @@ const corsOption = {
   credentials: true,
   optionSuccessStatus: 200,
 };
-
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 app.use(cors(corsOption));
 app.use(express.json());
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+app.use(cookieParser());
+
+// verify jwt meddleware
+const verifyToken = (req, res, next) => {
+  const token = req.cookies?.token;
+  if (!token) return res.status(401).send({ message: 'unauthorized access' });
+  if (token) {
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+      if (err) {
+        console.log(err);
+        return res.status(401).send({ message: 'unauthorized access' });
+      }
+      console.log(decoded);
+      req.user = decoded;
+      next();
+    });
+  }
+  console.log(token);
+};
+
 const uri = `mongodb+srv://${process.env.VITE_USER}:${process.env.VITE_PASS}@cluster0.mcpcj.mongodb.net/?appName=Cluster0`;
 
 const client = new MongoClient(uri, {
@@ -83,8 +102,12 @@ async function run() {
       res.send(result);
     });
     //get all job posted by a specific user
-    app.get('/job/:email', async (req, res) => {
+    app.get('/job/:email', verifyToken, async (req, res) => {
+      const tokenEmail = req.user.email;
       const email = req.params.email;
+      if (tokenEmail !== email) {
+        return res.status(403).send({ message: 'forbidden access' });
+      }
       const query = { 'buyer.buyer_email': email };
       const result = await jobCollection.find(query).toArray();
       res.send(result);
@@ -113,8 +136,12 @@ async function run() {
     });
 
     // get all bids for a user by email from db
-    app.get('/mybid/:email', async (req, res) => {
+    app.get('/mybid/:email', verifyToken, async (req, res) => {
+      const tokenEmail = req.user.email;
       const email = req.params.email;
+      if (tokenEmail !== email) {
+        return res.status(403).send({ message: 'forbidden access' });
+      }
       // akai hoi tahola sodo emai lakala hiba
       // const query = { email: email };
       const query = { email };
