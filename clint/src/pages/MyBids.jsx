@@ -15,9 +15,9 @@ const MyBids = () => {
     setBidts(data);
   };
   //handleStatus
-  const handleStatus = async (id, prevStatus, status) => {
-    if (prevStatus === status) return console.log('sorry vai ..hobena');
-    console.log(id, prevStatus, status);
+  const handleStatus = async (id, status) => {
+    
+    console.log(id, status);
     const { data } = await axios.patch(
       `${import.meta.env.VITE_API_URL}/update-status/${id}`,
       { status }
@@ -152,7 +152,7 @@ const MyBids = () => {
                         <button
                           disabled={bid.status !== 'In Progress'}
                           onClick={() =>
-                            handleStatus(bid._id, bid.status, 'Complete')
+                            handleStatus(bid._id, 'Complete')
                           }
                           title="Mark Complete"
                           className="text-gray-500 transition-colors duration-200   hover:text-red-500 focus:outline-none disabled:cursor-not-allowed"

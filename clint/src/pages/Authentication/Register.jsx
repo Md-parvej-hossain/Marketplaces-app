@@ -4,6 +4,7 @@ import img from '../../assets/register.jpg';
 import { useContext, useEffect } from 'react';
 import { AuthContext } from '../../provider/AuthProvider';
 import toast from 'react-hot-toast';
+import axios from 'axios';
 
 const Register = () => {
   const {
@@ -33,11 +34,20 @@ const Register = () => {
       const result = await createUser(email, password);
       console.log(result);
       await updateUserProfile(userName, photo);
+      //OPtimistic ui update
       setUser({
-        ...user,
+        ...result?.user,
         phtoURL: photo,
         displayName: userName,
       });
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_API_URL}/jwt`,
+        {
+          email: result?.user?.email,
+        },
+        { withCredentials: true }
+      );
+      console.log(data);
       navigate(from, { replace: true });
       toast.success('signup successFull');
     } catch (err) {
@@ -47,7 +57,15 @@ const Register = () => {
 
   const handaleGoogleLogin = async () => {
     try {
-      await signInWithGoogle();
+      const result = await signInWithGoogle();
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_API_URL}/jwt`,
+        {
+          email: result?.user?.email,
+        },
+        { withCredentials: true }
+      );
+      console.log(data);
       toast.success('Successfully toasted!');
       navigate('/');
     } catch (err) {
