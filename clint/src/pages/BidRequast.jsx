@@ -1,32 +1,66 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { AuthContext } from '../provider/AuthProvider';
-import axios from 'axios';
-import { useQuery } from '@tanstack/react-query';
+// import React, { useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import useAxiosSecure from '../hooks/useAxiosSecure';
+import useAuth from '../hooks/useAuth';
+import toast from 'react-hot-toast';
 
 const BidRequast = () => {
-  const { user } = useContext(AuthContext);
-  const [bids, setBidts] = useState([]);
-  useQuery({});
-  useEffect(() => {
-    getData();
-  }, [user]);
+  const { user } = useAuth();
+  // const [bids, setBidts] = useState([]);
+  const axiosSecure = useAxiosSecure();
+  const queryClient = useQueryClient();
+  //get request for tanstack/react-query useQuery
+  const {
+    data: bids = [],
+    isLoading,
+    refetch,
+    isError,
+    error,
+  } = useQuery({
+    queryFn: () => getData(),
+    queryKey: ['bids', user?.email],
+  });
+  console.log(bids);
+
+  // useEffect(() => {
+  //   getData();
+  // }, [user]);
+  //get request for tanstack/react-query
   const getData = async () => {
-    const { data } = await axios(
-      `${import.meta.env.VITE_API_URL}/bid-requests/${user?.email}`
-    );
-    setBidts(data);
+    const { data } = await axiosSecure(`/bid-requests/${user?.email}`);
+    // setBidts(data);
+    return data;
   };
+
+  //patch request for tanstack/react-query
+  const { mutateAsync } = useMutation({
+    mutationFn: async ({ id, status }) => {
+      const { data } = await axiosSecure.patch(`/update-status/${id}`, {
+        status,
+      });
+      console.log(data);
+      return data;
+    },
+    onSuccess: () => {
+      console.log('wow data updated');
+      toast.success('wow data updated');
+
+      //refetch ui way 1
+      // refetch();
+
+      //refetch ui way 2 use const queryClient = useQueryClient();
+      queryClient.invalidateQueries({ queryKey: ['bids'] });
+    },
+  });
   //handleStatus
   const handleStatus = async (id, prevStatus, status) => {
     if (prevStatus === status) return console.log('sorry vai ..hobena');
-    console.log(id, prevStatus, status);
-    const { data } = await axios.patch(
-      `${import.meta.env.VITE_API_URL}/update-status/${id}`,
-      { status }
-    );
-    console.log(data);
-    getData();
+    await mutateAsync({ id, status });
   };
+  if (isLoading) return <p>Data is Still Loading....</p>;
+  if (isError || error) {
+    console.log(isError, error);
+  }
   return (
     <section className="container px-4 mx-auto pt-12">
       <div className="flex items-center gap-x-3">

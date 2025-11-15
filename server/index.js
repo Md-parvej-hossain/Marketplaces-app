@@ -22,15 +22,15 @@ const verifyToken = (req, res, next) => {
   if (token) {
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
       if (err) {
-        console.log(err);
+        // console.log(err);
         return res.status(401).send({ message: 'unauthorized access' });
       }
-      console.log(decoded);
+      // console.log(decoded);
       req.user = decoded;
       next();
     });
   }
-  console.log(token);
+  // console.log(token);
 };
 
 const uri = `mongodb+srv://${process.env.VITE_USER}:${process.env.VITE_PASS}@cluster0.mcpcj.mongodb.net/?appName=Cluster0`;
@@ -51,7 +51,7 @@ async function run() {
     //jwt generate
     app.post('/jwt', async (req, res) => {
       const user = req.body;
-      console.log('Dynamic token for this user =>', user);
+      // console.log('Dynamic token for this user =>', user);
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: '7d',
       });
@@ -91,6 +91,19 @@ async function run() {
     //seb a bid data in db
     app.post('/bid', async (req, res) => {
       const bidData = req.body;
+      //check if its a duplicate request
+      const query = {
+        email: bidData.email,
+        jobId: bidData.jobId,
+      };
+      const alreadyApplied = await bidCollection.findOne(query);
+      // console.log(alreadyApplied);
+      if (alreadyApplied) {
+        return res
+          .status(400)
+          .send('You have alresdy placed a bid on this Job.');
+      }
+      // return console.log(alreadyApplied);
       const result = await bidCollection.insertOne(bidData);
       res.send(result);
     });
@@ -157,7 +170,7 @@ async function run() {
       res.send(result);
     });
     //update bid status
-    app.patch('/update-status/:id', async (req, res) => {
+    app.patch('/update-status/:id', verifyToken, async (req, res) => {
       const id = req.params.id;
       const status = req.body;
       const query = { _id: new ObjectId(id) };
@@ -166,6 +179,25 @@ async function run() {
       };
       const result = await bidCollection.updateOne(query, updateDoc);
       res.send(result);
+    });
+    //pagenation
+    //get all jobs data BD for pagenation
+    app.get('/all-jobs', async (req, res) => {
+      const size = parseInt(req.query.size);
+      const page = parseInt(req.query.page)-1;
+      console.log(size, page);
+      const result = await jobCollection
+        .find()
+        .skip(page * size)
+        .limit(size)
+        .toArray();
+      res.send(result);
+    });
+    //get all jobs data count
+    app.get('/jobs-count', async (req, res) => {
+      // const result = await jobCollection.estimatedDocumentCount()
+      const count = await jobCollection.countDocuments();
+      res.send({ count });
     });
     await client.db('admin').command({ ping: 1 });
     console.log(
